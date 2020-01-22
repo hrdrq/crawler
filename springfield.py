@@ -1,4 +1,6 @@
 # encoding: utf-8
+import os
+from time import sleep
 import argparse
 
 from bs4 import BeautifulSoup
@@ -39,12 +41,27 @@ class Springfield(Crawler):
         soup = BeautifulSoup(r.text, 'lxml')
         return soup.find('div', class_='scrolling-script-container').get_text(separator="\n").strip()
 
-    def run(self):
-        self.get_episodes()
+    def save(self, dest_dir, ep_dict):
+        for d in ep_dict:
+            season = d["season"]
+            season_dir = os.path.join(dest_dir, "{:02d}".format(int(season)))
+            os.makedirs(season_dir , exist_ok=True)
+            for ep in d["episodes"]:
+                episode = ep["episode"]
+                file_name = os.path.join(season_dir, "{:02d}.txt".format(int(episode)))
+                with open(file_name, "w") as f:
+                    f.write(self.get_transcript(ep["link"]))
+                sleep(1)
+
+
+    def run(self, dest_dir):
+        ep_dict = self.get_episodes()
+        self.save(dest_dir, ep_dict)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('drama')
+    parser.add_argument('dest_dir')
     a = parser.parse_args()
 
-    Springfield(a.drama).run()
+    Springfield(a.drama).run(a.dest_dir)

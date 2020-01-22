@@ -1416,3 +1416,32 @@ class TestSpringfield(TestCase):
             url = 'view_episode_scripts.php?tv-show=friends&episode=s01e01'
             res = Springfield('friends').get_transcript(url)
             self.assertEqual(res, TRANSCRIPT)
+
+    @patch("springfield.sleep", lambda x: 0)
+    def test_save(self):
+        with vcr.use_cassette('test/vcr_cassettes/springfield_friends_save.yaml'):
+            ep_dict = [
+              {
+                "season": "1",
+                "episodes": [
+                  {
+                    "episode": "1",
+                    "link": "view_episode_scripts.php?tv-show=friends&episode=s01e01"
+                  },
+                  {
+                    "episode": "2",
+                    "link": "view_episode_scripts.php?tv-show=friends&episode=s01e02"
+                  }
+                ]
+              },
+              {
+                "season": "2",
+                "episodes": [
+                  {
+                    "episode": "1",
+                    "link": "view_episode_scripts.php?tv-show=friends&episode=s02e01"
+                  }
+                ]
+              }
+            ]
+            Springfield('friends').save('test/results/friends', ep_dict)
